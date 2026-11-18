@@ -1,7 +1,6 @@
 import React from 'react';
 import { LogOut, Moon, Sun, MessageSquare, HelpCircle } from 'lucide-react';
 import type { ActiveTab, ThemeMode, UserState } from '../types/chat';
-import { PWAInstallButton } from './PWAInstallButton';
 
 interface TopBarProps {
   activeTab: ActiveTab;
@@ -74,8 +73,6 @@ export const TopBar: React.FC<TopBarProps> = ({
           >
             {badgeText}
           </span>
-
-          <PWAInstallButton />
 
           <button
             type="button"

@@ -5,9 +5,6 @@ on:
     branches: ['main', 'master']
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build-android-apk:
     runs-on: ubuntu-latest
@@ -26,24 +23,6 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Setup Android SDK (if missing)
-        if: env.ANDROID_HOME == '' && env.ANDROID_SDK_ROOT == ''
-        uses: android-actions/setup-android@v3
-
-      - name: Configure Android SDK 36 & accept licenses
-        run: |
-          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          echo "ANDROID_HOME=$SDK_DIR" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=$SDK_DIR" >> "$GITHUB_ENV"
-          mkdir -p "$SDK_DIR/licenses"
-          printf "\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n" > "$SDK_DIR/licenses/android-sdk-license"
-          printf "\n84831b9409646a918e30573bab4c9c91346d8abd\n" > "$SDK_DIR/licenses/android-sdk-preview-license"
-          SDKMANAGER="$(command -v sdkmanager || find "$SDK_DIR/cmdline-tools" -name sdkmanager -type f 2>/dev/null | head -n 1)"
-          if [ -n "$SDKMANAGER" ]; then
-            yes | "$SDKMANAGER" --sdk_root="$SDK_DIR" --licenses > /dev/null 2>&1 || true
-            "$SDKMANAGER" --sdk_root="$SDK_DIR" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-          fi
-
       - name: Install dependencies
         run: npm install
 
@@ -57,34 +36,22 @@ jobs:
           fi
           npx cap sync android
 
+      - name: Accept Android SDK licenses
+        run: |
+          SDK_DIR="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          if [ -n "$SDK_DIR" ] && [ -x "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          fi
+
       - name: Build Debug APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: Prepare named APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk Material-AI-Chat.apk
-
       - name: Upload Android APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: material-ai-chat-android-apk
-          path: Material-AI-Chat.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-
-      - name: Publish APK to GitHub Releases
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: android-apk-latest
-          name: Material AI Chat — Android APK (Latest)
-          body: |
-            Installable Android APK built automatically from `${{ github.ref_name }}`.
-
-            ### How to Install on Android
-            1. Download **Material-AI-Chat.apk** below directly on your Android phone.
-            2. Tap the downloaded `.apk` file and allow **Install unknown apps** if prompted.
-            3. Open **Material AI Chat** (Guest Mode, Offline Assistant, Email/Password login, Cloud Firestore sync, and JSON Backup all work inside the APK).
-          files: Material-AI-Chat.apk
-          prerelease: false
-          make_latest: true

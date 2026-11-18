@@ -36,7 +36,6 @@ import { TopBar } from './components/TopBar';
 import { ChatScreen } from './components/ChatScreen';
 import { HelpBackupScreen } from './components/HelpBackupScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { OfflineIndicator } from './components/OfflineIndicator';
 
 function getInitialTheme(): ThemeMode {
   try {
@@ -536,7 +535,6 @@ function AppContent() {
           onRestoreBackup={handleRestoreBackup}
         />
       )}
-      <OfflineIndicator />
     </div>
   );
 }

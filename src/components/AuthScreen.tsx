@@ -8,7 +8,6 @@ import {
 import { Moon, Sun, ArrowRight, AlertCircle, UserCheck } from 'lucide-react';
 import { auth, googleProvider } from '../firebase';
 import type { ThemeMode } from '../types/chat';
-import { PWAInstallButton } from './PWAInstallButton';
 
 interface AuthScreenProps {
   theme: ThemeMode;
@@ -100,18 +99,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         <span className="font-display text-lg font-bold tracking-tight whitespace-nowrap shrink-0">
           Material AI Chat
         </span>
-        <div className="flex items-center gap-2">
-          <PWAInstallButton />
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="min-h-[40px] px-3 rounded-xl border border-[#E2E8F0] dark:border-[#262E3B] bg-white dark:bg-[#171C24] text-sm font-medium inline-flex items-center gap-2 hover:bg-[#EEF2F7] dark:hover:bg-[#1E2530] transition-colors whitespace-nowrap shrink-0"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="min-h-[40px] px-3 rounded-xl border border-[#E2E8F0] dark:border-[#262E3B] bg-white dark:bg-[#171C24] text-sm font-medium inline-flex items-center gap-2 hover:bg-[#EEF2F7] dark:hover:bg-[#1E2530] transition-colors whitespace-nowrap shrink-0"
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+        </button>
       </header>
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
