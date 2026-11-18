@@ -97,9 +97,15 @@ function AppContent() {
 
   // Check server Gemini availability
   useEffect(() => {
-    fetch('/api/health')
-      .then((res) => res.json())
-      .then((data: { cloudAvailable?: boolean }) => {
+    fetch('./api/health')
+      .then(async (res) => {
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok || !contentType.includes('application/json')) {
+          return { cloudAvailable: false };
+        }
+        return (await res.json()) as { cloudAvailable?: boolean };
+      })
+      .then((data) => {
         const available = Boolean(data?.cloudAvailable);
         setCloudAvailable(available);
         setSettings((prev) => ({
@@ -370,7 +376,7 @@ function AppContent() {
             ? `${settings.systemInstruction}\n\n[User Memory Context]\n${memoryContextLines.join('\n')}`
             : settings.systemInstruction;
 
-        const resp = await fetch('/api/chat', {
+        const resp = await fetch('./api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -381,6 +387,13 @@ function AppContent() {
             model: settings.model,
           }),
         });
+
+        const contentType = resp.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error(
+            'Cloud Gemini requires the Express backend (server.ts), which is not active on static hosting like GitHub Pages. Switch to Offline Local mode in Settings.'
+          );
+        }
 
         const data = (await resp.json()) as {
           text?: string;
