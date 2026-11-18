@@ -1,0 +1,8 @@
+{
+  "name": "Material AI Chat",
+  "description": "Material 3 AI chatbot with Firebase Authentication, Cloud Firestore sync, shared cross-chat memory, smart offline assistant, and JSON backup tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

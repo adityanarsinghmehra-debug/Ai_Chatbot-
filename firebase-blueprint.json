@@ -1,0 +1,199 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Per-user profile, preferences, and shared cross-chat memory stored at users/{uid}",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Authentication user UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 80
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 160
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar URL",
+          "maxLength": 500
+        },
+        "shareMemoryEnabled": {
+          "type": "boolean",
+          "description": "Whether remembered facts carry into new chats"
+        },
+        "sharedMemory": {
+          "type": "object",
+          "description": "Remembered user name and key facts across conversations"
+        },
+        "settings": {
+          "type": "object",
+          "description": "Model, temperature, system instruction, and theme settings"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update server timestamp"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "email",
+        "photoURL",
+        "shareMemoryEnabled",
+        "sharedMemory",
+        "settings",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChatThread": {
+      "title": "ChatThread",
+      "description": "A user-owned conversation thread stored under users/{uid}/chats/{chatId}",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique chat thread ID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Conversation title",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "messageCount": {
+          "type": "integer",
+          "description": "Number of messages in the thread"
+        },
+        "lastMessagePreview": {
+          "type": "string",
+          "description": "Truncated preview of the latest message",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update server timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "title",
+        "messageCount",
+        "lastMessagePreview",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "An individual message inside users/{uid}/chats/{chatId}/messages/{messageId}",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique message ID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "chatId": {
+          "type": "string",
+          "description": "Parent chat thread ID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["user", "assistant"],
+          "description": "Message author role"
+        },
+        "content": {
+          "type": "string",
+          "description": "Message text content",
+          "minLength": 1,
+          "maxLength": 16000
+        },
+        "modelUsed": {
+          "type": "string",
+          "description": "Model identifier or local assistant label",
+          "maxLength": 80
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "chatId",
+        "ownerId",
+        "role",
+        "content",
+        "modelUsed",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "User profile, settings, and shared memory"
+    },
+    "/users/{uid}/chats/{chatId}": {
+      "schema": {
+        "$ref": "#/entities/ChatThread"
+      },
+      "description": "User chat conversation metadata"
+    },
+    "/users/{uid}/chats/{chatId}/messages/{messageId}": {
+      "schema": {
+        "$ref": "#/entities/ChatMessage"
+      },
+      "description": "Immutable messages belonging to a user chat thread"
+    }
+  }
+}
