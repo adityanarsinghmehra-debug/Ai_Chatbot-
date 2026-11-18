@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { Download, Upload, Copy, Check, AlertCircle, RotateCcw } from 'lucide-react';
+import { Download, Upload, Copy, Check, AlertCircle, RotateCcw, Smartphone } from 'lucide-react';
 import type { BackupPayload, ChatThread, SharedMemory } from '../types/chat';
 import { createBackupPayload, parseBackupJson, serializeBackupJson } from '../utils/backup';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface HelpBackupScreenProps {
   chats: ChatThread[];
@@ -51,7 +52,24 @@ export const HelpBackupScreen: React.FC<HelpBackupScreenProps> = ({
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [installNotice, setInstallNotice] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+
+  const handleInstallClick = async () => {
+    setInstallNotice(null);
+    if (isInstallable) {
+      await install();
+      return;
+    }
+    if (isIOS) {
+      setInstallNotice('On iPhone/iPad Safari: tap Share → Add to Home Screen.');
+      return;
+    }
+    setInstallNotice(
+      'In Android Chrome: open the ⋮ menu and tap "Install app" or "Add to Home screen". For the standalone .apk file, push this project to GitHub and download Material-AI-Chat.apk from your repo’s Releases tab.'
+    );
+  };
 
   const handleRefreshExport = () => {
     const json = serializeBackupJson(
@@ -265,6 +283,44 @@ export const HelpBackupScreen: React.FC<HelpBackupScreenProps> = ({
           ))}
         </div>
       </section>
+
+      {/* Android App & APK Guide */}
+      {!isInstalled && (
+        <section className="rounded-3xl bg-white dark:bg-[#171C24] border border-[#E2E8F0] dark:border-[#262E3B] p-5 sm:p-7 space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1">
+              <h2 className="font-display text-xl font-bold tracking-tight">
+                Install as Android App
+              </h2>
+              <p className="text-sm text-[#475569] dark:text-[#94A3B8]">
+                Install directly from Android Chrome as a standalone app, or download the native{' '}
+                <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-[#EEF2F7] dark:bg-[#1E2530]">
+                  Material-AI-Chat.apk
+                </code>{' '}
+                from your GitHub repository&apos;s Releases tab.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void handleInstallClick()}
+              className="min-h-[42px] px-4 py-2 rounded-xl bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-[#062E6F] text-sm font-medium inline-flex items-center gap-2 hover:opacity-90 transition-opacity whitespace-nowrap"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>{isInstallable ? 'Install App Now' : 'How to Install on Android'}</span>
+            </button>
+          </div>
+
+          {installNotice && (
+            <div
+              role="status"
+              className="rounded-2xl border border-[#CBD5E1] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0E1117] p-3.5 text-sm text-[#334155] dark:text-[#CBD5E1]"
+            >
+              {installNotice}
+            </div>
+          )}
+        </section>
+      )}
     </main>
   );
 };

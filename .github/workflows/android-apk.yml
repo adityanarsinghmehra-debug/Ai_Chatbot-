@@ -5,6 +5,9 @@ on:
     branches: ['main', 'master']
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-android-apk:
     runs-on: ubuntu-latest
@@ -23,6 +26,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 36 & accept licenses
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
       - name: Install dependencies
         run: npm install
 
@@ -36,22 +47,34 @@ jobs:
           fi
           npx cap sync android
 
-      - name: Accept Android SDK licenses
-        run: |
-          SDK_DIR="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
-          if [ -n "$SDK_DIR" ] && [ -x "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" ]; then
-            yes | "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
-          fi
-
       - name: Build Debug APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
+      - name: Prepare named APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Material-AI-Chat.apk
+
       - name: Upload Android APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: material-ai-chat-android-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: Material-AI-Chat.apk
           if-no-files-found: error
+
+      - name: Publish APK to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-apk-latest
+          name: Material AI Chat — Android APK (Latest)
+          body: |
+            Installable Android APK built automatically from `${{ github.ref_name }}`.
+
+            ### How to Install on Android
+            1. Download **Material-AI-Chat.apk** below directly on your Android phone.
+            2. Tap the downloaded `.apk` file and allow **Install unknown apps** if prompted.
+            3. Open **Material AI Chat** (Guest Mode, Offline Assistant, Email/Password login, Cloud Firestore sync, and JSON Backup all work inside the APK).
+          files: Material-AI-Chat.apk
+          prerelease: false
+          make_latest: true
